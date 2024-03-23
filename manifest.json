@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Uncompressed E621 Mirror",
+  "description": "Uploads an uncompressed version of an image to a database to be uploaded to e621.",
+  "version": "1.0",
+  "options_page": "html/options.html",
+  "content_scripts": [
+    {
+      "js": ["scripts/observers.js"],
+      "matches": [
+        "https://twitter.com/*",
+        "https://x.com/*",
+        "https://*.furaffinity.net/submit/",
+        "https://furaffinity.net/submit/"
+      ]
+    }
+  ],
+  "permissions": [
+    "storage"
+  ]
+}
