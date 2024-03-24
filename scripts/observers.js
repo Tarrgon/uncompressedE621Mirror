@@ -9,7 +9,7 @@ async function sendBlobs(blobs) {
 
   let i = 0
 
-  for (let blob of allBlobs) {
+  for (let blob of blobs) {
     if (blob.size >= 100 * 1024 * 1024) continue
     formData.append(`file-${i++}`, blob)
   }
