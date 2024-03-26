@@ -1,24 +1,17 @@
-async function sendBlobs(blobs) {
+async function sendBlobs(blobs, source) {
   if (blobs.length == 0) return
 
   let data = await chrome.storage.sync.get("key")
   if (!data.key) return
-  let key = data.key
 
-  let formData = new FormData()
-
-  let i = 0
+  let binaryBlobs = []
 
   for (let blob of blobs) {
     if (blob.size >= 100 * 1024 * 1024) continue
-    formData.append(`file-${i++}`, blob)
+    binaryBlobs.push({binary: [...new Uint8Array(await blob.arrayBuffer())], type: blob.type})
   }
 
-  await fetch(`https://yiff.today/upload_middleman?key=${key}`, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  })
+  chrome.runtime.sendMessage({ binaryBlobs, source })
 }
 
 const capturedButtons = []
@@ -63,7 +56,7 @@ async function twitterObserver() {
 
           if (allBlobs.length == 0) return
 
-          sendBlobs(allBlobs)
+          sendBlobs(allBlobs, "twitter")
         })
       }
     }
@@ -126,7 +119,7 @@ async function furaffinityObserver() {
 
         if (allBlobs.length == 0) return
 
-        sendBlobs(allBlobs)
+        sendBlobs(allBlobs, "furaffinity")
       })
     }
   })
