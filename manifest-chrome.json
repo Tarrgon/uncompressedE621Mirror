@@ -19,7 +19,9 @@
         "https://twitter.com/*",
         "https://x.com/*",
         "https://*.furaffinity.net/submit/",
-        "https://furaffinity.net/submit/"
+        "https://furaffinity.net/submit/",
+        "https://www.artstation.com/community/projects/new*",
+        "https://bsky.app/*"
       ]
     }
   ],
@@ -29,7 +31,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "uncompressedE621Mirror@DefinitelyNotAFurry.org",
-      "strict_min_version": "42.0"
+      "strict_min_version": "57.0"
     }
   }
 }
