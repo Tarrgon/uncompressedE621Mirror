@@ -128,6 +128,10 @@ async function blueskyObserver() {
           })
         })
 
+        mutation.target.querySelector("[aria-label='Cancel']").addEventListener("click", () => {
+          currentBlobs.clear()
+        })
+
         button.addEventListener("click", async (e) => {
           if (!enabled) return
 
@@ -135,6 +139,8 @@ async function blueskyObserver() {
           if (!data.key || currentBlobs.size == 0) return
 
           sendBlobs(currentBlobs.values().toArray(), "bluesky")
+
+          currentBlobs.clear()
         })
 
         let capturedInputs = []
@@ -150,7 +156,7 @@ async function blueskyObserver() {
               })
             }
           }
-        })  
+        })
 
         fileInputObserver.observe(document.body, {
           childList: true,
@@ -191,6 +197,10 @@ async function blueskyObserver() {
           childList: true,
           subtree: true
         })
+
+        document.body.addEventListener("drop", (e) => {
+          nextFiles = Array.from(e.dataTransfer.files)
+        }, true)
       }
     }
   })
@@ -306,10 +316,15 @@ async function artstationObserver() {
   })
 }
 
+async function deviantartObserver() {
+
+}
+
 (() => {
   console.log("EXTENSION LOADED!")
   if (window.location.href.includes("x.com") || window.location.href.includes("twitter.com")) twitterObserver()
   else if (window.location.href.includes("bsky.app")) blueskyObserver()
   else if (window.location.href.includes("furaffinity.net")) furaffinityObserver()
   else if (window.location.href.includes("artstation.com")) artstationObserver()
+  else if (window.location.href.includes("www.deviantart.com")) deviantartObserver()
 })();
