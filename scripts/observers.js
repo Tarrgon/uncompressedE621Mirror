@@ -472,7 +472,7 @@ async function deviantartObserver() {
 }
 
 (() => {
-  console.log("EXTENSION LOADED!")
+  console.log("UNCOMPRESSED E621 MIRROR LOADED!")
   if (window.location.href.includes("x.com") || window.location.href.includes("twitter.com")) twitterObserver()
   else if (window.location.href.includes("bsky.app")) blueskyObserver()
   else if (window.location.href.includes("furaffinity.net")) furaffinityObserver()
