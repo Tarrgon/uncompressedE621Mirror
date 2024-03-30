@@ -7,8 +7,7 @@
     "page": "html/options.html"
   },
   "background": {
-    "type": "module",
-    "service_worker": "scripts/uploader.js"
+    "scripts": ["scripts/uploader.js"]
   },
   "content_scripts": [
     {
@@ -22,7 +21,7 @@
         "https://furaffinity.net/submit/",
         "https://www.artstation.com/community/projects/new*",
         "https://bsky.app/*",
-        "https://www.deviantart.com/submit/"
+        "https://www.deviantart.com/submit"
       ]
     }
   ],

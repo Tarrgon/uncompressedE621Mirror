@@ -7,8 +7,7 @@
     "page": "html/options.html"
   },
   "background": {
-    "scripts": ["scripts/uploader.js"],
-    "persistent": false
+    "scripts": ["scripts/uploader.js"]
   },
   "content_scripts": [
     {
