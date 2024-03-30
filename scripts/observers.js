@@ -1,24 +1,29 @@
-function waitForElm(selector, tester) {
+function wait(ms) {
+  return new Promise(r => setTimeout(r, ms))
+}
+
+function waitForElm(selector, tester, context) {
   return new Promise((resolve) => {
+    if (!context) context = document
     if (tester) {
-      for (let ele of document.querySelectorAll(selector)) {
+      for (let ele of context.querySelectorAll(selector)) {
         if (tester(ele)) return resolve(ele)
       }
     } else {
-      let ele = document.querySelector(selector)
+      let ele = context.querySelector(selector)
       if (ele) return resolve(ele)
     }
 
     const observer = new MutationObserver(() => {
       if (tester) {
-        for (let ele of document.querySelectorAll(selector)) {
+        for (let ele of context.querySelectorAll(selector)) {
           if (tester(ele)) {
             observer.disconnect()
             return resolve(ele)
           }
         }
       } else {
-        let ele = document.querySelector(selector)
+        let ele = context.querySelector(selector)
         if (ele) {
           observer.disconnect()
           return resolve(ele)
@@ -26,7 +31,7 @@ function waitForElm(selector, tester) {
       }
     })
 
-    observer.observe(document.body, {
+    observer.observe(context, {
       childList: true,
       subtree: true
     })
@@ -317,7 +322,153 @@ async function artstationObserver() {
 }
 
 async function deviantartObserver() {
+  let enabled = (await chrome.storage.sync.get("enabled"))?.enabled ?? true
 
+  const capturedCloseButtons = []
+  const reactors = []
+  const files = []
+  const customButtons = []
+  const capturedButtons = []
+  const bodiesWithObservers = []
+  const formsWithLiseners = []
+
+  let currentActiveFrame = null
+
+  let onChangeReactor = async () => {
+    let doc = await waitForElm(".iframed_submitform.never-hide-me.loaded.active")
+    if (currentActiveFrame == doc) return
+
+    currentActiveFrame = doc
+
+    while (!doc.contentWindow.document.body) await wait(500)
+
+    if (!bodiesWithObservers.includes(doc.contentWindow.document.body)) {
+
+      let grabForms = async () => {
+        let form = await waitForElm("#stash-form", null, doc.contentWindow.document.body)
+        let fileInput = await waitForElm("#stash-form > a > input", null, doc.contentWindow.document.body)
+
+        if (!formsWithLiseners.includes(form)) {
+          formsWithLiseners.push(form)
+
+          fileInput.addEventListener("change", () => {
+            files.push(...Array.from(fileInput.files))
+          })
+
+          form.addEventListener("drop", (e) => {
+            files.push(...Array.from(e.dataTransfer.files))
+          }, true)
+        }
+      }
+
+      await grabForms()
+
+      const bodyObserver = new MutationObserver(() => {
+        grabForms()
+      })
+
+      bodyObserver.observe(doc.contentWindow.document.body, {
+        childList: true,
+        subtree: true
+      })
+
+      bodiesWithObservers.push(doc.contentWindow.document.body)
+    }
+
+    let buttons = [await waitForElm("button.ile-button.ile-heading-submit-button.ile-handicapped.ile-submit-button.smbutton.smbutton-green", null, doc.contentWindow.document.body),
+    await waitForElm("button.ile-button.ile-heading-submit-button.ile-handicapped.ile-submit-button.bottom.smbutton.smbutton-green", null, doc.contentWindow.document.body)]
+
+    for (let button of buttons) {
+      if (capturedButtons.includes(button)) continue
+      capturedButtons.push(button)
+
+      let customButton = button.cloneNode(true)
+      capturedButtons.push(customButton)
+
+      customButton.firstElementChild.innerHTML = ""
+      customButton.firstElementChild.innerText = `Mirror (${enabled ? "ON" : "OFF"})`
+      customButton.firstElementChild.style.fontSize = "12.5px"
+      button.before(customButton)
+
+      button.addEventListener("click", async (e) => {
+        if (!enabled) return
+
+        let data = await chrome.storage.sync.get("key")
+        if (!data.key) return
+
+        let tabs = Array.from(document.querySelectorAll("li.submit-tab.loaded"))
+
+        let activeTabIndex = tabs.findIndex(e => e.classList.contains("active"))
+
+        for (let react of reactors) {
+          react(activeTabIndex)
+        }
+
+        reactors.splice(activeTabIndex, 1)
+
+        sendBlobs([files[activeTabIndex]], "deviantart")
+
+        onChangeReactor()
+      })
+
+      customButton.addEventListener("click", async (e) => {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        enabled = !enabled
+
+        for (let b of customButtons)
+          b.firstElementChild.innerText = `Mirror (${enabled ? "ON" : "OFF"})`
+
+        await chrome.storage.sync.set({
+          enabled: enabled
+        })
+      })
+
+      customButtons.push(customButton)
+    }
+  }
+
+  const observer = new MutationObserver(async (list) => {
+    for (let mutation of list) {
+      if (mutation.addedNodes.length > 0) {
+        for (let node of mutation.addedNodes) {
+          let closeTab = node.parentElement.querySelector(".submit-tab-close")
+          if (closeTab && !capturedCloseButtons.includes(closeTab)) {
+            closeTab.parentElement.addEventListener("click", () => {
+              onChangeReactor()
+            })
+
+            capturedCloseButtons.push(closeTab)
+            let tabs = Array.from(document.querySelectorAll("li.submit-tab"))
+            let tabIndex = tabs.findIndex(e => e.contains(closeTab))
+
+            let reactor = (index) => {
+              if (index < tabIndex) tabIndex--
+            }
+
+            reactors.push(reactor)
+
+            closeTab.addEventListener("click", () => {
+              files.splice(tabIndex, 1)
+
+              for (let react of reactors) {
+                react(tabIndex)
+              }
+
+              reactors.splice(reactors.indexOf(reactor), 1)
+            })
+          }
+        }
+      }
+    }
+  })
+
+  observer.observe(await waitForElm(".submit-tab-list"), {
+    childList: true,
+    subtree: true
+  })
+
+  onChangeReactor()
 }
 
 (() => {

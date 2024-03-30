@@ -21,7 +21,8 @@
         "https://*.furaffinity.net/submit/",
         "https://furaffinity.net/submit/",
         "https://www.artstation.com/community/projects/new*",
-        "https://bsky.app/*"
+        "https://bsky.app/*",
+        "https://www.deviantart.com/submit"
       ]
     }
   ],

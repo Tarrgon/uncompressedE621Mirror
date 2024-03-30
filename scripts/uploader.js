@@ -11,11 +11,12 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   for (let bin of request.binaryBlobs) {
     let blob = new Blob([new Uint8Array(bin.binary)], {type: bin.type})
     if (blob.size >= 100 * 1024 * 1024) continue
-    console.log(blob)
     formData.append(`file-${i++}`, blob)
   }
 
   formData.append("source", request.source)
+
+  console.log(`SENDING FILES FROM: ${request.source}`)
 
   await fetch(`https://yiff.today/upload_middleman?key=${key}`, {
     method: "POST",
