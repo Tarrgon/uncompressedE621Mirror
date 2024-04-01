@@ -1,4 +1,9 @@
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  const acceptableMimeTypes = ["image/png", "image/jpeg", "image/gif", "image/apng", "video/mp4", "video/webm"]
+
+  const MAX_SIZE = 100 * 1024 * 1024
+  const MAX_SIZE_GIF = 20 * 1024 * 1024
+
   let data = await chrome.storage.sync.get("key")
   if (!data.key) return
   let key = data.key
@@ -9,8 +14,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
 
   for (let bin of request.binaryBlobs) {
-    let blob = new Blob([new Uint8Array(bin.binary)], {type: bin.type})
-    if (blob.size >= 100 * 1024 * 1024) continue
+    let blob = new Blob([new Uint8Array(bin.binary)], { type: bin.type })
+    if (!acceptableMimeTypes.includes(blob.mimetype) || blob.size > MAX_SIZE || (blob.type == "image/gif" && blob.size > MAX_SIZE_GIF)) continue
     formData.append(`file-${i++}`, blob)
   }
 
