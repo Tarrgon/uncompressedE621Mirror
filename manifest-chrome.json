@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Uncompressed E621 Mirror",
   "description": "Uploads an uncompressed version of an image to a database to be uploaded to e621.",
-  "version": "2.1",
+  "version": "2.3",
   "options_ui": {
     "page": "html/options.html"
   },
@@ -22,7 +22,8 @@
         "https://furaffinity.net/submit/",
         "https://www.artstation.com/community/projects/new*",
         "https://bsky.app/*",
-        "https://www.deviantart.com/submit"
+        "https://www.deviantart.com/submit",
+        "https://www.instagram.com/*"
       ]
     }
   ],
@@ -31,8 +32,9 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "uncompressedE621Mirror@DefinitelyNotAFurry.org",
-      "strict_min_version": "57.0"
+      "id": "uncompressedE621Mirror-selfhosted@DefinitelyNotAFurry.org",
+      "strict_min_version": "57.0",
+      "update_url": "https://yiff.today/upload_middleman/addon/updates"
     }
   }
 }

@@ -12,10 +12,9 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
   let i = 0
 
-
   for (let bin of request.binaryBlobs) {
     let blob = new Blob([new Uint8Array(bin.binary)], { type: bin.type })
-    if (!acceptableMimeTypes.includes(blob.mimetype) || blob.size > MAX_SIZE || (blob.type == "image/gif" && blob.size > MAX_SIZE_GIF)) continue
+    if (!acceptableMimeTypes.includes(blob.type) || blob.size > MAX_SIZE || (blob.type == "image/gif" && blob.size > MAX_SIZE_GIF)) continue
     formData.append(`file-${i++}`, blob)
   }
 

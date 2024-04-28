@@ -471,11 +471,73 @@ async function deviantartObserver() {
   onChangeReactor()
 }
 
+async function instagramObserver() {
+  let enabled = (await chrome.storage.sync.get("enabled"))?.enabled ?? true
+
+  const capturedInputs = []
+
+  let nextFiles = []
+
+  const observer = new MutationObserver(() => {
+    for (let input of document.querySelectorAll("input[type='file'][accept='image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime']")) {
+      if (capturedInputs.includes(input)) continue
+      capturedInputs.push(input)
+      input.addEventListener("change", () => {
+        nextFiles = Array.from(input.files)
+      })
+    }
+
+    for (let button of document.querySelectorAll("div[role='button']")) {
+      if (button.innerText == "Share" && !capturedButtons.includes(button)) {
+        capturedButtons.push(button)
+
+        let customButton = button.cloneNode(true)
+        customButton.innerText = `Mirror (${enabled ? "ON" : "OFF"})`
+        button.before(customButton)
+        capturedButtons.push(customButton)
+
+        customButton.addEventListener("click", async () => {
+          enabled = !enabled
+          customButton.innerText = `Mirror (${enabled ? "ON" : "OFF"})`
+
+          await chrome.storage.sync.set({
+            enabled: enabled
+          })
+        })
+
+        button.addEventListener("click", async (e) => {
+          if (!enabled) return
+
+          let data = await chrome.storage.sync.get("key")
+          if (!data.key) return
+
+          let allBlobs = []
+
+          for (let image of nextFiles) {
+            if (image.size >= 100 * 1024 * 1024) continue
+            allBlobs.push(image)
+          }
+
+          if (allBlobs.length == 0) return
+
+          sendBlobs(allBlobs, "instagram")
+        })
+      }
+    }
+  })
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  })
+}
+
 (() => {
   console.log("UNCOMPRESSED E621 MIRROR LOADED!")
   if (window.location.href.includes("x.com") || window.location.href.includes("twitter.com")) twitterObserver()
   else if (window.location.href.includes("bsky.app")) blueskyObserver()
   else if (window.location.href.includes("furaffinity.net")) furaffinityObserver()
   else if (window.location.href.includes("artstation.com")) artstationObserver()
-  else if (window.location.href.includes("www.deviantart.com")) deviantartObserver()
+  else if (window.location.href.includes("deviantart.com")) deviantartObserver()
+  else if (window.location.href.includes("instagram.com")) instagramObserver()
 })();
