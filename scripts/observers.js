@@ -250,7 +250,29 @@ async function furaffinityObserver() {
         })
       })
 
-      button.addEventListener("click",)
+      button.addEventListener("click", async () => {
+        let form = document.getElementById("myform")
+
+        let selected = form.querySelector(".selected")
+
+        if (!enabled || selected.firstElementChild.innerText.trim() != "Artwork") return
+
+        let data = await chrome.storage.sync.get("key")
+        if (!data.key) return
+
+        let allImages = Array.from(document.getElementById("submissionFileDragDropArea").querySelectorAll("[src^='blob:']")).map(e => e.src)
+        let allBlobs = []
+
+        for (let image of allImages) {
+          const blob = await (await fetch(image)).blob()
+          if (blob.size >= 100 * 1024 * 1024) continue
+          allBlobs.push(blob)
+        }
+
+        if (allBlobs.length == 0) return
+
+        sendBlobs(allBlobs, "furaffinity")
+      })
     }
   })
 
